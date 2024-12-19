@@ -1,188 +1,170 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>KienKie</title>
-        <style>
-        .highcharts-figure,
-        .highcharts-data-table table {
-            min-width: 310px;
-            max-width: 500px;
-            margin: 1em auto;
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heartbeat Gauge</title>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/highcharts-more.js"></script>
+    <script src="https://code.highcharts.com/modules/solid-gauge.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+    <script src="https://www.unpkg.com/@eohjsc/era-widget@1.0.14/src/index.js"></script>
+    <style>
+        .highcharts-figure .chart-container {
+            width: 300px;
+            height: 200px;
+            margin: 0 auto;
         }
-
-        .highcharts-data-table table {
-            font-family: Verdana, sans-serif;
-            border-collapse: collapse;
-            border: 1px solid #ebebeb;
-            margin: 10px auto;
+        .highcharts-figure {
+            width: 300px;
+            margin: 20px auto;
             text-align: center;
-            width: 100%;
-            max-width: 500px;
+        }
+        button {
+            display: block;
+            margin: 1em auto;
+            padding: 0.5em 1em;
+            font-size: 1em;
+            background-color: #45a049;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
         }
 
-        .highcharts-data-table caption {
-            padding: 1em 0;
-            font-size: 1.2em;
-            color: #555;
+        button:hover {
+            background-color: #75cb7893;
         }
+    </style>
+</head>
+<body>
+    <figure class="highcharts-figure">
+        <div id="container-kk" class="chart-container"></div>
+        <p class="highcharts-description"></p>
+        <button id="exportButton">Export to Excel</button>
+    </figure>
 
-        .highcharts-data-table th {
-            font-weight: 600;
-            padding: 0.5em;
-        }
+<input type="checkbox" id="MQ135"/>
+    <script>
+        // Era Widget initialization
+        const eraWidget = new EraWidget();
+        let config = null;
+        let mqValue = 0; // Khởi tạo giá trị nhịp tim mặc định
+        const dataBuffer = [];
 
-        .highcharts-data-table td,
-        .highcharts-data-table th,
-        .highcharts-data-table caption {
-            padding: 0.5em;
-        }
+        eraWidget.onConfiguration((configuration) => {
+            config = configuration.realtime_configs[0];
+        });
 
-        .highcharts-data-table thead tr,
-        .highcharts-data-table tr:nth-child(even) {
-            background: #f8f8f8;
-        }
+        eraWidget.onValues((values) => {
+            const input = document.getElementById('MQ135');
+            mqValue = values[config.id].value; // Giả sử values[config.id].value là nhịp tim thực tế
+            input.checked = values[config.id].value > 0; // Đặt trạng thái của checkbox dựa trên nhịp tim
+        });
 
-        .highcharts-data-table tr:hover {
-            background: #f1f7ff;
-        }
+        eraWidget.ready();
 
-        .highcharts-description {
-            margin: 0.3rem 10px;
-        }
-
-        </style>
-    </head>
-    <body>
-        <script src="https://code.highcharts.com/highcharts.js"></script>
-        <script src="https://code.highcharts.com/highcharts-more.js"></script>
-        <script src="https://code.highcharts.com/modules/exporting.js"></script>
-        <script src="https://code.highcharts.com/modules/export-data.js"></script>
-        <script src="https://code.highcharts.com/modules/accessibility.js"></script>
-
-        <figure class="highcharts-figure">
-            <div id="container"></div>
-            <p class="highcharts-description">
-                Chart showing use of plot bands with a gauge series. The chart is
-                updated dynamically every few seconds.
-            </p>
-        </figure>
-        <script>
-            Highcharts.chart('container', {
-
-                chart: {
-                    type: 'gauge',
-                    plotBackgroundColor: null,
-                    plotBackgroundImage: null,
-                    plotBorderWidth: 0,
-                    plotShadow: false,
-                    height: '80%'
-                },
-            
-                title: {
-                    text: 'Speedometer'
-                },
-            
-                pane: {
-                    startAngle: -90,
-                    endAngle: 89.9,
-                    background: null,
-                    center: ['50%', '75%'],
-                    size: '110%'
-                },
-            
-                // the value axis
-                yAxis: {
-                    min: 0,
-                    max: 200,
-                    tickPixelInterval: 72,
-                    tickPosition: 'inside',
-                    tickColor: Highcharts.defaultOptions.chart.backgroundColor || '#FFFFFF',
-                    tickLength: 20,
-                    tickWidth: 2,
-                    minorTickInterval: null,
-                    labels: {
-                        distance: 20,
-                        style: {
-                            fontSize: '14px'
-                        }
-                    },
-                    lineWidth: 0,
-                    plotBands: [{
-                        from: 0,
-                        to: 130,
-                        color: '#55BF3B', // green
-                        thickness: 20,
-                        borderRadius: '50%'
-                    }, {
-                        from: 150,
-                        to: 200,
-                        color: '#DF5353', // red
-                        thickness: 20,
-                        borderRadius: '50%'
-                    }, {
-                        from: 120,
-                        to: 160,
-                        color: '#DDDF0D', // yellow
-                        thickness: 20
-                    }]
-                },
-            
-                series: [{
-                    name: 'Speed',
-                    data: [80],
-                    tooltip: {
-                        valueSuffix: ' km/h'
-                    },
-                    dataLabels: {
-                        format: '{y} km/h',
-                        borderWidth: 0,
-                        color: (
-                            Highcharts.defaultOptions.title &&
-                            Highcharts.defaultOptions.title.style &&
-                            Highcharts.defaultOptions.title.style.color
-                        ) || '#333333',
-                        style: {
-                            fontSize: '16px'
-                        }
-                    },
-                    dial: {
-                        radius: '80%',
-                        backgroundColor: 'gray',
-                        baseWidth: 12,
-                        baseLength: '0%',
-                        rearLength: '0%'
-                    },
-                    pivot: {
-                        backgroundColor: 'gray',
-                        radius: 6
-                    }
-            
-                }]
-            
-            });
-            
-            // Add some life
-            setInterval(() => {
-                const chart = Highcharts.charts[0];
-                if (chart && !chart.renderer.forExport) {
-                    const point = chart.series[0].points[0],
-                        inc = Math.round((Math.random() - 0.5) * 20);
-            
-                    let newVal = point.y + inc;
-                    if (newVal < 0 || newVal > 200) {
-                        newVal = point.y - inc;
-                    }
-            
-                    point.update(newVal);
+        // Gauge chart options
+        const gaugeOptions = {
+            chart: {
+                type: 'solidgauge'
+            },
+            title: null,
+            pane: {
+                center: ['50%', '85%'],
+                size: '140%',
+                startAngle: -90,
+                endAngle: 90,
+                background: {
+                    backgroundColor: '#f0f0f0',
+                    innerRadius: '60%',
+                    outerRadius: '100%',
+                    shape: 'arc'
                 }
-            
-            }, 3000);
+            },
+            yAxis: {
+                stops: [
+                    [0.1, '#55BF3B'], // green
+                    [0.5, '#DDDF0D'], // yellow
+                    [0.8, '#DF5353']  // red
+                ],
+                lineWidth: 0,
+                tickWidth: 0,
+                minorTickInterval: null,
+                tickAmount: 2,
+                title: {
+                    y: -70
+                },
+                labels: {
+                    y: 16
+                }
+            },
+            plotOptions: {
+                solidgauge: {
+                    dataLabels: {
+                        y: 5,
+                        borderWidth: 0,
+                        useHTML: true
+                    }
+                }
+            }
+        };
 
-        </script>
+        // Heartbeat gauge
+        const chartkk = Highcharts.chart('container-kk', Highcharts.merge(gaugeOptions, {
+            yAxis: {
+                min: 0,
+                max: 1000, // Assuming maximum heartbeat value is 130 bpm
+                title: {
+                    text: 'Chất Lượng Không Khí'
+                }
+            },
+            series: [{
+                name: 'PPM',
+                data: [0],
+                dataLabels: {
+                    format:
+                        '<div style="text-align:center">' +
+                        '<span style="font-size:25px">{y:.0f}</span><br/>' +
+                        '<span style="font-size:12px;opacity:0.4"></span>' +
+                        '</div>'
+                },
+                //tooltip: {
+                   // valueSuffix: ' BPM'
+               // }
+            }]
+        }));
 
-    </body>
+        // Update gauge chart and buffer data periodically
+        setInterval(() => {
+            const x = (new Date()).getTime(); // Current timestamp
+            const y = mqValue; // Current heartbeat value
 
+            // Update gauge value
+            const point = chartkk.series[0].points[0];
+            point.update(y);
 
+            // Store data in buffer
+            dataBuffer.push([x, y]);
+
+            // Limit buffer to 30 minutes (1800 seconds)
+            const thirtyMinutesAgo = x - 1800 * 1000;
+            while (dataBuffer.length > 0 && dataBuffer[0][0] < thirtyMinutesAgo) {
+                dataBuffer.shift();
+            }
+        }, 1000); // Update every second
+
+        // Export to Excel
+        document.getElementById('exportButton').addEventListener('click', () => {
+            const ws = XLSX.utils.json_to_sheet(dataBuffer.map(point => ({
+                Time: (new Date(point[0])).toLocaleString(),
+                PPM: point[1]
+            })));
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'MQ135');
+            XLSX.writeFile(wb, 'Chat_Luong_Khong_khi.xlsx');
+        });
+    </script>
+</body>
 </html>
