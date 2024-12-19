@@ -44,12 +44,12 @@
         <button id="exportButton">Export to Excel</button>
     </figure>
 
-<input type="checkbox" id="MQ135"/>
+<input type="checkbox" id="nuoc"/>
     <script>
         // Era Widget initialization
         const eraWidget = new EraWidget();
         let config = null;
-        let mqValue = 0; // Khởi tạo giá trị nhịp tim mặc định
+        let ncValue = 0; //
         const dataBuffer = [];
 
         eraWidget.onConfiguration((configuration) => {
@@ -57,8 +57,8 @@
         });
 
         eraWidget.onValues((values) => {
-            const input = document.getElementById('MQ135');
-            mqValue = values[config.id].value; // Giả sử values[config.id].value là nhịp tim thực tế
+            const input = document.getElementById('nuoc');
+            ncValue = values[config.id].value; // Giả sử values[config.id].value là nhịp tim thực tế
             input.checked = values[config.id].value > 0; // Đặt trạng thái của checkbox dựa trên nhịp tim
         });
 
@@ -120,7 +120,7 @@
                 }
             },
             series: [{
-                name: 'PPM',
+                name: 'NTU',
                 data: [0],
                 dataLabels: {
                     format:
@@ -138,7 +138,7 @@
         // Update gauge chart and buffer data periodically
         setInterval(() => {
             const x = (new Date()).getTime(); // Current timestamp
-            const y = mqValue; // Current heartbeat value
+            const y = ncValue; // Current heartbeat value
 
             // Update gauge value
             const point = chartkk.series[0].points[0];
@@ -158,12 +158,12 @@
         document.getElementById('exportButton').addEventListener('click', () => {
             const ws = XLSX.utils.json_to_sheet(dataBuffer.map(point => ({
                 Time: (new Date(point[0])).toLocaleString(),
-                PPM: point[1]
+                NTU: point[1]
             })));
 
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'MQ135');
-            XLSX.writeFile(wb, 'Chat_Luong_Khong_khi.xlsx');
+            XLSX.utils.book_append_sheet(wb, ws, 'nuoc');
+            XLSX.writeFile(wb, 'Do_Duc_Nuoc.xlsx');
         });
     </script>
 </body>
